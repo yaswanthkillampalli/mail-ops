@@ -1,11 +1,19 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRealtimeRefresh } from '@/lib/realtime';
 import EmailList from '@/components/EmailList';
 import EmailDetail from '@/components/EmailDetail';
 
 export default function EmailsPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh' }} />}>
+      <EmailsPageContent />
+    </Suspense>
+  );
+}
+
+function EmailsPageContent() {
   const searchParams = useSearchParams();
   const [emails, setEmails] = useState<any[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(
