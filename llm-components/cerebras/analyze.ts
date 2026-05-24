@@ -30,7 +30,15 @@ ${bodyText}
     response_format: { type: 'json_object' },
   });
 
-  const raw = response.choices[0]?.message?.content ?? '{}';
+  const completion = response as {
+    choices?: Array<{
+      message?: {
+        content?: string | null;
+      };
+    }>;
+  };
+
+  const raw = completion.choices?.[0]?.message?.content ?? '{}';
 
   let parsed: Partial<CerebrasAnalysisResult>;
   try {
