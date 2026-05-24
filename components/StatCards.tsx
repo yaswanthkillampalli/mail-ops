@@ -74,10 +74,10 @@ export default function StatCards({
       />
       <StatCard
         icon={Bot}
-        label="Gemini Analyses"
+        label="Cerebras Analyses"
         value={total}
         color="#8b5cf6"
-        sub="gemini-2.5-flash-lite"
+        sub="gpt-oss-120b"
       />
       <StatCard
         icon={BarChart2}

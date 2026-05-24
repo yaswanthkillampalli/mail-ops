@@ -82,11 +82,11 @@ export default function ModelInfoCards({ total }: { total: number }) {
       />
       <ModelCard
         icon={Bot}
-        name="Gemini"
+        name="Cerebras"
         color="#8b5cf6"
         badge="Deep Analysis"
         badgeBg="rgba(139,92,246,0.1)"
-        model="gemini-2.5-flash-lite"
+        model="gpt-oss-120b"
         tasks="Summary · Core Issue · Reply Suggestions"
         speed="< 2000ms"
         total={total}

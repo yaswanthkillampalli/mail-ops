@@ -32,9 +32,9 @@ Every incoming email is processed by **two AI models in parallel:**
 | Model | Provider | Tasks |
 |---|---|---|
 | `llama-3.1-8b-instant` | Groq | Tag · Priority · Sentiment · Escalation flag |
-| `gemini-2.5-flash-lite` | Google Gemini | Summary · Core issue · 3 Reply suggestions |
+| `gpt-oss-120b` | Cerebras | Summary · Core issue · 3 Reply suggestions |
 
-Groq runs first (< 500ms) for instant triage. Gemini follows with deeper analysis (< 2s). Results stream into the DB as each model finishes — the UI fills in progressively using Supabase Realtime.
+Groq runs first (< 500ms) for instant triage. Cerebras follows with deeper analysis (< 2s). Results stream into the DB as each model finishes — the UI fills in progressively using Supabase Realtime.
 
 ### 🏠 Dashboard
 - 4 live stat cards: Unread emails, Open tickets, Critical alerts, Resolved today
@@ -63,7 +63,7 @@ Groq runs first (< 500ms) for instant triage. Gemini follows with deeper analysi
 - Original email context displayed alongside the reply
 
 ### 📊 AI Monitoring
-- Total emails processed, Groq and Gemini call counts
+- Total emails processed, Groq and Cerebras call counts
 - Tag distribution — donut chart
 - Priority distribution — bar chart
 - Sentiment distribution — bar chart
@@ -85,7 +85,7 @@ Groq runs first (< 500ms) for instant triage. Gemini follows with deeper analysi
 | Language | TypeScript | Type safety across the whole stack |
 | Styling | Inline CSS with CSS variables | Full theme control without a CSS framework |
 | AI — Fast Triage | Groq `llama-3.1-8b-instant` | Sub-500ms classification, free tier |
-| AI — Deep Analysis | Google `gemini-2.5-flash-lite` | Rich structured output, generous free tier |
+| AI — Deep Analysis | Cerebras `gpt-oss-120b` | Rich structured output, high-throughput inference |
 | Email Inbound | Resend Inbound + Webhooks | Webhook-based, no polling, body via API |
 | Email Outbound | Resend API | Same platform, simple send API |
 | Database | Supabase (PostgreSQL) | Realtime subscriptions out of the box |
@@ -117,7 +117,7 @@ Resend Inbound (MX record → inbound-smtp.resend.com)
       │     ├─→ Groq llama-3.1-8b-instant
       │     │     └─→ UPDATE email_analysis (tag, priority, sentiment, escalation)
       │     │
-      │     └─→ Gemini gemini-2.5-flash-lite
+      │     └─→ Cerebras gpt-oss-120b
       │           └─→ UPDATE email_analysis (summary, core_issue, reply_suggestions)
       │
       ▼
@@ -134,7 +134,7 @@ emails
 
 email_analysis (one-to-one with emails)
   ├── tag, priority, sentiment, escalation   ← Groq
-  └── summary, core_issue, reply_suggestions ← Gemini
+  └── summary, core_issue, reply_suggestions ← Cerebras
 
 tickets
   ├── email_id (FK), title, tag, priority
@@ -156,7 +156,7 @@ staff
 ### Why Two AI Models?
 Rather than using one model for everything, I split the work by speed requirement:
 - **Groq** is extremely fast (< 500ms) and perfect for simple classification tasks — tag, priority, sentiment. The IT supervisor sees this instantly.
-- **Gemini** takes slightly longer but produces richer outputs — a nuanced summary, core issue extraction, and contextual reply suggestions.
+- **Cerebras** takes slightly longer but produces richer outputs — a nuanced summary, core issue extraction, and contextual reply suggestions.
 
 Running them in **parallel with `Promise.all`** means the total wait time is only as long as the slower model, not the sum of both.
 
@@ -207,8 +207,8 @@ cp .env.example .env.local
 # NEXT_PUBLIC_SUPABASE_ANON_KEY
 # SUPABASE_SERVICE_ROLE_KEY
 # RESEND_API_KEY
-# GEMINI_API_KEY
-# GEMINI_MODEL=gemini-2.5-flash-lite
+# CEREBRAS_API_KEY
+# CEREBRAS_MODEL=gpt-oss-120b
 # GROQ_API_KEY
 # GROQ_MODEL=llama-3.1-8b-instant
 
@@ -267,7 +267,7 @@ lib/
   queries.ts                  ← All DB operations
   realtime.ts                 ← Supabase realtime hook
   groq/                       ← Groq classification
-  gemini/                     ← Gemini analysis
+  cerebras/                   ← Cerebras analysis
 ```
 
 ---

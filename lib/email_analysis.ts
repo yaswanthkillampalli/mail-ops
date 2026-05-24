@@ -1,6 +1,6 @@
 import { supabaseAdmin } from './supabase';
 import { classifyEmail } from '@/llm-components/groq';
-import { analyzeEmail } from '@/llm-components/gemini';
+import { analyzeEmail } from '@/llm-components/cerebras';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -59,11 +59,11 @@ async function runGroqAnalysis(email: EmailPayload): Promise<void> {
 	}
 }
 
-// ─── Step 2b: Gemini → update summary, core_issue, reply_suggestions ─────────
+// ─── Step 2b: Cerebras → update summary, core_issue, reply_suggestions ─────────
 
-async function runGeminiAnalysis(email: EmailPayload): Promise<void> {
+async function runCerebrasAnalysis(email: EmailPayload): Promise<void> {
 	try {
-		console.log('🔮 Gemini analysis started for email:', email.id);
+		console.log('🔮 Cerebras analysis started for email:', email.id);
 
 		const result = await analyzeEmail(
 			email.subject ?? '(no subject)',
@@ -81,20 +81,20 @@ async function runGeminiAnalysis(email: EmailPayload): Promise<void> {
 			.eq('email_id', email.id);
 
 		if (error) {
-			console.error('❌ Gemini DB update failed:', error.message);
+			console.error('❌ Cerebras DB update failed:', error.message);
 			return;
 		}
 
-		console.log('✅ Gemini analysis saved for email:', email.id);
+		console.log('✅ Cerebras analysis saved for email:', email.id);
 	} catch (err) {
-		console.error('❌ Gemini analysis error for email:', email.id, err);
+		console.error('❌ Cerebras analysis error for email:', email.id, err);
 	}
 }
 
 // ─── Main export: call this from saveEmail ────────────────────────────────────
 
 /**
- * Inserts an empty analysis row, then fires Groq and Gemini in parallel.
+ * Inserts an empty analysis row, then fires Groq and Cerebras in parallel.
  * Non-blocking — the webhook can return 200 while this runs in the background.
  */
 export async function triggerEmailAnalysis(email: EmailPayload): Promise<void> {
@@ -102,5 +102,5 @@ export async function triggerEmailAnalysis(email: EmailPayload): Promise<void> {
 
 	// Fire both independently — neither waits for the other
 	runGroqAnalysis(email);
-	runGeminiAnalysis(email);
+	runCerebrasAnalysis(email);
 }

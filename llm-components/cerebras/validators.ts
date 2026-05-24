@@ -1,4 +1,4 @@
-import type { GeminiAnalysisResult } from './types';
+import type { CerebrasAnalysisResult } from './types';
 
 export function isValidReplySuggestions(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === 'string');
@@ -16,7 +16,9 @@ export function normalizeReplySuggestions(value: unknown): string[] {
   return suggestions;
 }
 
-export function isGeminiAnalysisResult(value: Partial<GeminiAnalysisResult>): value is GeminiAnalysisResult {
+export function isCerebrasAnalysisResult(
+  value: Partial<CerebrasAnalysisResult>
+): value is CerebrasAnalysisResult {
   return (
     typeof value.summary === 'string' &&
     typeof value.core_issue === 'string' &&

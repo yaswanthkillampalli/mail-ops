@@ -1,17 +1,17 @@
-import gemini from './model';
+import cerebras from './model';
 import { SYSTEM_PROMPT } from './prompt';
 import { normalizeReplySuggestions } from './validators';
-import type { GeminiAnalysisResult } from './types';
+import type { CerebrasAnalysisResult } from './types';
 
 /**
- * Runs Gemini deep analysis on an incoming email.
+ * Runs Cerebras deep analysis on an incoming email.
  * Returns summary, core_issue, and 3 reply suggestions.
  */
 export async function analyzeEmail(
   subject: string,
   bodyText: string,
   fromName?: string | null
-): Promise<GeminiAnalysisResult> {
+): Promise<CerebrasAnalysisResult> {
   const userMessage = `
 From: ${fromName ?? 'Unknown'}
 Subject: ${subject}
@@ -19,25 +19,25 @@ Body:
 ${bodyText}
 `.trim();
 
-  const response = await gemini.models.generateContent({
-    model: process.env.GEMINI_MODEL ?? 'gemini-2.0-flash',
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-      temperature: 0.4,
-      maxOutputTokens: 1024,
-      responseMimeType: 'application/json',
-    },
-    contents: userMessage,
+  const response = await cerebras.chat.completions.create({
+    model: process.env.CEREBRAS_MODEL ?? 'gpt-oss-120b',
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: userMessage },
+    ],
+    temperature: 0.4,
+    max_tokens: 1024,
+    response_format: { type: 'json_object' },
   });
 
-  const raw = response.text ?? '';
+  const raw = response.choices[0]?.message?.content ?? '{}';
 
-  let parsed: Partial<GeminiAnalysisResult>;
+  let parsed: Partial<CerebrasAnalysisResult>;
   try {
     const cleaned = raw.replace(/```json|```/g, '').trim();
     parsed = JSON.parse(cleaned);
   } catch {
-    throw new Error(`Gemini returned invalid JSON: ${raw}`);
+    throw new Error(`Cerebras returned invalid JSON: ${raw}`);
   }
 
   return {

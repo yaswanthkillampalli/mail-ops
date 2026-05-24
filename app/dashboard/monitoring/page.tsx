@@ -44,7 +44,7 @@ export default function MonitoringPage() {
           AI Monitoring
         </h1>
         <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-          Groq + Gemini usage and classification stats
+          Groq + Cerebras usage and analysis stats
         </p>
       </div>
 
