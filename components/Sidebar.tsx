@@ -7,7 +7,6 @@ import {
   MessageSquareReply,
   Ticket,
   BarChart2,
-  Settings,
   Sun,
   Moon,
 } from 'lucide-react';
@@ -98,16 +97,6 @@ export default function Sidebar() {
           {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
         </button>
 
-        <Link href="/dashboard/settings" title="Settings" style={{
-          width: 44, height: 44,
-          borderRadius: '12px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: 'var(--text-muted)',
-          textDecoration: 'none',
-          transition: 'all 0.15s',
-        }}>
-          <Settings size={20} />
-        </Link>
       </div>
     </aside>
   );
