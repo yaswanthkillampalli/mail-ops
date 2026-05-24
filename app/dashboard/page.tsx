@@ -52,12 +52,19 @@ export default function DashboardPage() {
     setLoading(false);
 }, []);
 
-    useEffect(() => {
-    const timer = window.setTimeout(() => {
+  useEffect(() => {
+    const initialTimer = window.setTimeout(() => {
       void fetchAll();
     }, 0);
 
-    return () => window.clearTimeout(timer);
+    const timer = window.setInterval(() => {
+      void fetchAll();
+    }, 10000);
+
+    return () => {
+      window.clearTimeout(initialTimer);
+      window.clearInterval(timer);
+    };
   }, [fetchAll]);
 
   // realtime — refetch whenever anything changes
