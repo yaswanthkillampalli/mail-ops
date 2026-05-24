@@ -47,7 +47,8 @@ Groq runs first (< 500ms) for instant triage. Cerebras follows with deeper analy
 - Full email detail panel with AI analysis card
 - 3 AI-generated reply suggestions — click to pre-fill, edit if needed, send
 - Custom reply typing also supported
-- Actions: **Reply** · **Create Ticket** · **Mark as Read** · **Archive** · **Escalate**
+- Actions: **Reply** · **Create Ticket** · **Reanalyze** · **Mark as Read** · **Archive** · **Escalate**
+- Reanalyze button lets you rerun AI analysis whenever you want to recover from an error or verify updated results
 - Replies sent via **Resend API** and logged to DB
 
 ### 🎫 Tickets Kanban
