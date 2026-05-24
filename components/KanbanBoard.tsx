@@ -30,9 +30,13 @@ const COLUMNS = [
 
 export default function KanbanBoard({
   tickets,
+  expandedTicketId,
+  onExpandTicket,
   onUpdate,
 }: {
   tickets: any[];
+  expandedTicketId: string | null;
+  onExpandTicket: (ticketId: string) => void;
   onUpdate: () => void;
 }) {
   return (
@@ -107,6 +111,8 @@ export default function KanbanBoard({
                   key={ticket.id}
                   ticket={ticket}
                   currentStatus={col.status}
+                  expanded={expandedTicketId === ticket.id}
+                  onExpand={() => onExpandTicket(ticket.id)}
                   onUpdate={onUpdate}
                 />
               ))}

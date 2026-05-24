@@ -10,14 +10,17 @@ const STATUS_ORDER = ['Open', 'In Progress', 'Escalated', 'Resolved'];
 export default function TicketCard({
   ticket,
   currentStatus,
+  expanded,
+  onExpand,
   onUpdate,
 }: {
   ticket: any;
   currentStatus: string;
+  expanded: boolean;
+  onExpand: () => void;
   onUpdate: () => void;
 }) {
   const [moving, setMoving]         = useState(false);
-  const [hovered, setHovered]       = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const currentIndex  = STATUS_ORDER.indexOf(currentStatus);
@@ -43,23 +46,23 @@ export default function TicketCard({
   return (
     <>
       <div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        onClick={onExpand}
         style={{
-            background: 'var(--bg-secondary)',
+          background: 'var(--bg-secondary)',
           border: '1px solid var(--border)',
-          borderColor: hovered ? priorityColor : 'var(--border)',
-            borderRadius: 10,
-            padding: hovered ? '12px' : '8px 12px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: hovered ? 10 : 6,
-            opacity: moving ? 0.6 : 1,
+          borderColor: expanded ? priorityColor : 'var(--border)',
+          borderRadius: 10,
+          padding: expanded ? '12px' : '8px 12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: expanded ? 10 : 6,
+          opacity: moving ? 0.6 : 1,
+          cursor: 'pointer',
           transition: 'border-color 0.18s ease, box-shadow 0.18s ease, padding 0.5s cubic-bezier(0.22, 1, 0.36, 1), gap 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.15s ease',
-          boxShadow: hovered ? `0 4px 16px ${priorityColor}` : 'none',
+          boxShadow: expanded ? `0 4px 16px ${priorityColor}` : 'none',
         }}
       >
-        {hovered ? (
+        {expanded ? (
           <TicketCardExpanded
             title={ticket.title}
             tag={ticket.tag}

@@ -17,6 +17,7 @@ export default function TicketsPage() {
   const [tickets, setTickets]   = useState<Ticket[]>([]);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
+  const [expandedTicketId, setExpandedTicketId] = useState<string | null>(null);
 
   const fetchTickets = useCallback(async () => {
     const data = await fetch('/api/dashboard/tickets').then(r => r.json());
@@ -157,7 +158,12 @@ export default function TicketsPage() {
             <Spinner />
           </div>
         ) : (
-          <KanbanBoard tickets={filtered} onUpdate={fetchTickets} />
+          <KanbanBoard
+            tickets={filtered}
+            expandedTicketId={expandedTicketId}
+            onExpandTicket={ticketId => setExpandedTicketId(ticketId)}
+            onUpdate={fetchTickets}
+          />
         )}
       </div>
     </div>
