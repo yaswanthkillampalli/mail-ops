@@ -15,6 +15,7 @@ MailOps is a real-time email operations dashboard designed for a busy IT profess
 ## Live Demo
 
 - **Dashboard:** [https://mail-ops.yashcodes.tech](https://mail-ops.yashcodes.tech)
+- **Demo video:** [https://youtu.be/XvOiiw49V9M](https://youtu.be/XvOiiw49V9M)
 - **Inbound email:** Send any email to `support@yashcodes.tech` and watch it appear on the dashboard within seconds.
 
 ---
