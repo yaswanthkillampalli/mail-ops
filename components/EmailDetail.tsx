@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import {
   Mail, Ticket, Archive, AlertTriangle,
-  CheckCircle, Send, X
+  CheckCircle, RefreshCw, Send, X
 } from 'lucide-react';
 
 const PRIORITY_COLOR: Record<string, string> = {
@@ -26,10 +26,31 @@ const SENTIMENT_EMOJI: Record<string, string> = {
   Angry: '😠', Frustrated: '😤', Neutral: '😐', Positive: '😊',
 };
 
+type EmailAnalysis = {
+  tag?: string | null;
+  priority?: string | null;
+  sentiment?: string | null;
+  escalation?: boolean | null;
+  summary?: string | null;
+  core_issue?: string | null;
+  reply_suggestions?: string[] | string | null;
+};
+
+type EmailDetailRecord = {
+  id: string;
+  subject: string;
+  from_email: string;
+  from_name: string | null;
+  received_at: string;
+  body_text: string | null;
+  status: string;
+  email_analysis?: EmailAnalysis | EmailAnalysis[] | null;
+};
+
 export default function EmailDetail({
   email, onUpdate,
 }: {
-  email: any | null;
+  email: EmailDetailRecord | null;
   onUpdate: () => void;
 }) {
   const [replyOpen, setReplyOpen] = useState(false);
@@ -38,6 +59,7 @@ export default function EmailDetail({
   const [replySuccess, setReplySuccess] = useState(false);
   const [ticketState, setTicketState] = useState<'idle' | 'loading' | 'created' | 'exists'>('idle');
   const [statusLoading, setStatusLoading] = useState(false);
+  const [reanalyzeLoading, setReanalyzeLoading] = useState(false);
 
   if (!email) return (
     <div style={{
@@ -51,11 +73,14 @@ export default function EmailDetail({
     </div>
   );
 
-  const analysis = Array.isArray(email.email_analysis)
-    ? email.email_analysis[0]
-    : email.email_analysis;
+  const currentEmail = email;
 
-  const tagStyle = TAG_COLORS[analysis?.tag] ?? TAG_COLORS.Info;
+  const analysis = Array.isArray(currentEmail.email_analysis)
+    ? currentEmail.email_analysis[0]
+    : currentEmail.email_analysis;
+
+  const tagKey = analysis?.tag && analysis.tag in TAG_COLORS ? analysis.tag : 'Info';
+  const tagStyle = TAG_COLORS[tagKey];
 
   const replySuggestions: string[] = (() => {
     if (!analysis?.reply_suggestions) return [];
@@ -65,7 +90,7 @@ export default function EmailDetail({
 
   async function handleStatusUpdate(status: string) {
     setStatusLoading(true);
-    await fetch(`/api/emails/${email.id}`, {
+    await fetch(`/api/emails/${currentEmail.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
@@ -80,8 +105,8 @@ export default function EmailDetail({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email_id: email.id,
-        title: analysis?.core_issue ?? email.subject,
+        email_id: currentEmail.id,
+        title: analysis?.core_issue ?? currentEmail.subject,
         tag: analysis?.tag ?? 'Info',
         priority: analysis?.priority ?? 'Medium',
       }),
@@ -89,14 +114,31 @@ export default function EmailDetail({
     setTicketState(res.status === 400 ? 'exists' : res.ok ? 'created' : 'idle');
   }
 
+  async function handleReanalyze() {
+    setReanalyzeLoading(true);
+
+    const response = await fetch(`/api/emails/${currentEmail.id}/reanalyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    setReanalyzeLoading(false);
+
+    if (!response.ok) {
+      return;
+    }
+
+    onUpdate();
+  }
+
   async function handleSendReply(body: string, wasAi: boolean) {
     setReplySending(true);
-    await fetch(`/api/emails/${email.id}/reply`, {
+    await fetch(`/api/emails/${currentEmail.id}/reply`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        to: email.from_email,
-        subject: email.subject,
+        to: currentEmail.from_email,
+        subject: currentEmail.subject,
         body,
         was_ai_suggestion: wasAi,
       }),
@@ -119,16 +161,16 @@ export default function EmailDetail({
         flexShrink: 0,
       }}>
         <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>
-          {email.subject}
+          {currentEmail.subject}
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-            {email.from_name
-              ? `${email.from_name} · ${email.from_email}`
-              : email.from_email}
+            {currentEmail.from_name
+              ? `${currentEmail.from_name} · ${currentEmail.from_email}`
+              : currentEmail.from_email}
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'DM Mono' }}>
-            {new Date(email.received_at).toLocaleString()}
+            {new Date(currentEmail.received_at).toLocaleString()}
           </div>
         </div>
       </div>
@@ -287,7 +329,7 @@ export default function EmailDetail({
             whiteSpace: 'pre-wrap',
             fontFamily: 'DM Mono',
           }}>
-            {email.body_text ?? 'No body content'}
+            {currentEmail.body_text ?? 'No body content'}
           </div>
         </div>
       </div>
@@ -305,7 +347,7 @@ export default function EmailDetail({
             alignItems: 'center', marginBottom: 10,
           }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
-              Reply to {email.from_email}
+              Reply to {currentEmail.from_email}
             </span>
             <button onClick={() => setReplyOpen(false)} style={{
               background: 'none', border: 'none',
@@ -404,8 +446,25 @@ export default function EmailDetail({
             : 'Create Ticket'}
         </button>
 
+        {/* Reanalyze */}
+        <button
+          onClick={handleReanalyze}
+          disabled={reanalyzeLoading}
+          style={{
+            padding: '8px 14px', borderRadius: 8,
+            border: '1px solid var(--border)',
+            background: 'var(--bg-tertiary)',
+            color: 'var(--text-secondary)',
+            fontSize: 12, cursor: reanalyzeLoading ? 'default' : 'pointer',
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}
+        >
+          <RefreshCw size={13} />
+          {reanalyzeLoading ? 'Reanalyzing...' : 'Reanalyze'}
+        </button>
+
         {/* Mark as read */}
-        {email.status === 'unread' && (
+          {currentEmail.status === 'unread' && (
           <button
             onClick={() => handleStatusUpdate('read')}
             disabled={statusLoading}
@@ -423,7 +482,7 @@ export default function EmailDetail({
         )}
 
         {/* Archive */}
-        {email.status !== 'archived' && (
+        {currentEmail.status !== 'archived' && (
           <button
             onClick={() => handleStatusUpdate('archived')}
             disabled={statusLoading}
